@@ -1,0 +1,84 @@
+{
+  "protocol": "warp:0.1.0",
+  "name": "SimpleDaoContract",
+  "title": "Execute SimpleDaoContract Actions",
+  "description": "Auto-generated Warp actions for SimpleDaoContract",
+  "preview": "https://vleap.io/images/external/warps/multiversx-docs.jpg",
+  "actions": [
+    {
+      "type": "contract",
+      "label": "Call createProposal",
+      "address": "erd1qqqqqqqqqqqqqpgqkr2ygjp0luge4jfjqv8z873qreuyms4xldvs42uf9f",
+      "func": "createProposal",
+      "args": [],
+      "gasLimit": 60000000,
+      "inputs": [
+        {
+          "name": "description",
+          "type": "string",
+          "position": "arg:1",
+          "source": "field",
+          "required": true
+        }
+      ]
+    },
+    {
+      "type": "contract",
+      "label": "Call vote",
+      "address": "erd1qqqqqqqqqqqqqpgqkr2ygjp0luge4jfjqv8z873qreuyms4xldvs42uf9f",
+      "func": "vote",
+      "args": [],
+      "gasLimit": 60000000,
+      "inputs": [
+        {
+          "name": "proposal_id",
+          "type": "biguint",
+          "position": "arg:1",
+          "source": "field",
+          "required": true
+        },
+        {
+          "name": "support",
+          "type": "bool",
+          "position": "arg:2",
+          "source": "field",
+          "required": true
+        }
+      ]
+    },
+    {
+      "type": "contract",
+      "label": "Call executeProposal",
+      "address": "erd1qqqqqqqqqqqqqpgqkr2ygjp0luge4jfjqv8z873qreuyms4xldvs42uf9f",
+      "func": "executeProposal",
+      "args": [],
+      "gasLimit": 60000000,
+      "inputs": [
+        {
+          "name": "proposal_id",
+          "type": "biguint",
+          "position": "arg:1",
+          "source": "field",
+          "required": true
+        }
+      ]
+    },
+    {
+      "type": "query",
+      "label": "Query getProposal",
+      "address": "erd1qqqqqqqqqqqqqpgqkr2ygjp0luge4jfjqv8z873qreuyms4xldvs42uf9f",
+      "func": "getProposal",
+      "args": [],
+      "gasLimit": 5000000,
+      "inputs": [
+        {
+          "name": "proposal_id",
+          "type": "biguint",
+          "position": "arg:1",
+          "source": "field",
+          "required": true
+        }
+      ]
+    }
+  ]
+}

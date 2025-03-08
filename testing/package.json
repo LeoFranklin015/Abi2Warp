@@ -1,0 +1,7 @@
+{
+  "dependencies": {
+    "@multiversx/sdk-core": "^13.17.2",
+    "@multiversx/sdk-network-providers": "^2.9.3",
+    "@vleap/warps": "^0.13.1"
+  }
+}
