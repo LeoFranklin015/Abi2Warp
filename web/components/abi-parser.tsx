@@ -11,8 +11,15 @@ interface ABIFunction {
   type?: string;
   mutability?: string;
   onlyOwner?: boolean;
-  inputs: any[];
-  outputs: any[];
+  inputs: {
+    name: string;
+    type: string;
+    [key: string]: unknown;
+  }[];
+  outputs: {
+    type: string;
+    [key: string]: unknown;
+  }[];
 }
 
 export default function ABIParser() {
@@ -33,12 +40,8 @@ export default function ABIParser() {
         if (parsed.endpoints) {
           setParsedAbi(parsed.endpoints);
           setSelectedFunctions(["all"]); // Reset selection when ABI changes
-        }
-        // Handle traditional Ethereum ABI format
-        else if (Array.isArray(parsed)) {
-          const functions = parsed.filter((item) => item.type === "function");
-          setParsedAbi(functions);
-          setSelectedFunctions(["all"]); // Reset selection when ABI changes
+        } else {
+          console.error("Invalid ABI format: Missing endpoints array");
         }
       }
     } catch (error) {
@@ -79,47 +82,36 @@ export default function ABIParser() {
   };
 
   // Create warp (filter ABI based on selection)
-  const createWarp = () => {
+  const createWarp = async () => {
     setIsLoading(true);
 
-    setTimeout(() => {
+    setTimeout(async () => {
       try {
         const parsed = JSON.parse(abiInput);
         let filtered;
 
-        // Handle DAO ABI format
+        // Handle DAO ABI format only
         if (parsed.endpoints) {
           // Create a copy of the original object
           const result = { ...parsed };
 
           // If not "all" is selected, filter the endpoints
           if (!selectedFunctions.includes("all")) {
-            result.endpoints = parsed.endpoints.filter((item: any) =>
+            result.endpoints = parsed.endpoints.filter((item: ABIFunction) =>
               selectedFunctions.includes(item.name)
             );
           }
 
           // Convert the filtered ABI to Warp format
-          const warp = convertAbiToWarp(result, contractAddress);
+          const warp = await convertAbiToWarp(result, contractAddress, parsed, {
+            selectedFunctions: selectedFunctions,
+            openAIApiKey: process.env.NEXT_PUBLIC_OPENAI_API_KEY,
+          });
           filtered = warp;
-        }
-        // Handle traditional Ethereum ABI format
-        else if (Array.isArray(parsed)) {
-          // If not "all" is selected, filter the ABI
-          if (!selectedFunctions.includes("all")) {
-            const warp = convertAbiToWarp(
-              parsed.filter(
-                (item: any) =>
-                  item.type !== "function" ||
-                  selectedFunctions.includes(item.name)
-              ),
-              contractAddress
-            );
-            filtered = warp;
-          } else {
-            const warp = convertAbiToWarp(parsed, contractAddress);
-            filtered = warp;
-          }
+        } else {
+          console.error("Invalid ABI format: Missing endpoints array");
+          setIsLoading(false);
+          return;
         }
 
         setOutputAbi(JSON.stringify(filtered, null, 2));
@@ -276,7 +268,7 @@ export default function ABIParser() {
                     Processed ABI will appear here
                     <br />
                     <span className="text-sm">
-                      Click "Create Warp" to generate
+                      Click &quot;Create Warp&quot; to generate
                     </span>
                   </p>
                 </div>
@@ -346,10 +338,10 @@ export default function ABIParser() {
               and DAO ABI formats)
             </p>
             <p>
-              2. Select the functions you want to include (or keep "All"
-              selected)
+              2. Select the functions you want to include (or keep
+              &quot;All&quot; selected)
             </p>
-            <p>3. Click "Create Warp" to generate the filtered ABI</p>
+            <p>3. Click &quot;Create Warp&quot; to generate the filtered ABI</p>
             <p>4. Copy the result using the clipboard icon</p>
             <div className="flex items-center gap-2 mt-2">
               <span className="inline-block w-3 h-3 bg-green-300 dark:bg-green-700 rounded-full"></span>
@@ -368,6 +360,21 @@ export default function ABIParser() {
                 contract owner
               </span>
             </div>
+            <p className="italic text-sm text-gray-500 dark:text-gray-400 mb-4">
+              Please input a valid contract address to generate actions for your
+              Warp.
+            </p>
+            <p className="my-4 text-sm text-gray-600 dark:text-gray-300">
+              Paste your contract address (bech32 format):
+            </p>
+            <p>
+              If you don&apos;t have an ABI file yet, you can find it in the
+              explorer or generate it from your smart contract code.
+            </p>
+            <p>
+              Your ABI JSON is properly formatted! Select the functions
+              you&apos;d like to include in your Warp.
+            </p>
           </div>
         </div>
       </div>
