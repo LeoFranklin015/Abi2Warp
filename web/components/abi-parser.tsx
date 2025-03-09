@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { Check, ClipboardCopy } from "lucide-react";
 import { Textarea } from "@/components/ui/textarea";
 import { cn } from "@/lib/utils";
+import { convertAbiToWarp } from "@/lib/ABItoWarp";
 
 interface ABIFunction {
   name: string;
@@ -21,7 +22,7 @@ export default function ABIParser() {
   const [outputAbi, setOutputAbi] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [copied, setCopied] = useState(false);
-
+  const [contractAddress, setContractAddress] = useState("");
   // Parse ABI when input changes
   useEffect(() => {
     try {
@@ -98,19 +99,26 @@ export default function ABIParser() {
             );
           }
 
-          filtered = result;
+          // Convert the filtered ABI to Warp format
+          const warp = convertAbiToWarp(result, contractAddress);
+          filtered = warp;
         }
         // Handle traditional Ethereum ABI format
         else if (Array.isArray(parsed)) {
           // If not "all" is selected, filter the ABI
           if (!selectedFunctions.includes("all")) {
-            filtered = parsed.filter(
-              (item: any) =>
-                item.type !== "function" ||
-                selectedFunctions.includes(item.name)
+            const warp = convertAbiToWarp(
+              parsed.filter(
+                (item: any) =>
+                  item.type !== "function" ||
+                  selectedFunctions.includes(item.name)
+              ),
+              contractAddress
             );
+            filtered = warp;
           } else {
-            filtered = parsed;
+            const warp = convertAbiToWarp(parsed, contractAddress);
+            filtered = warp;
           }
         }
 
@@ -275,16 +283,25 @@ export default function ABIParser() {
               )}
             </div>
 
-            <div className="flex justify-center">
+            <div className="flex justify-between">
+              <input
+                type="text"
+                placeholder="Enter contract address"
+                value={contractAddress}
+                onChange={(e) => setContractAddress(e.target.value)}
+                className="mt-2 p-2 border border-gray-300 dark:border-gray-600 rounded-md min-w-[300px]"
+              />
               <button
                 onClick={createWarp}
-                disabled={isLoading || !abiInput.trim()}
+                disabled={
+                  isLoading || !abiInput.trim() || !contractAddress.trim()
+                }
                 className={cn(
                   "relative px-8 py-3 text-lg font-bold rounded-xl overflow-hidden transition-all duration-200",
                   "border-2 border-gray-300 dark:border-gray-600",
                   "after:content-[''] after:absolute after:inset-0 after:bg-gradient-to-b after:from-white/30 after:to-transparent after:opacity-50 dark:after:from-white/10",
-                  isLoading || !abiInput.trim()
-                    ? "bg-gradient-to-b from-gray-400 to-gray-500 text-white opacity-70 cursor-not-allowed shadow-[0_0_0_0_rgba(0,0,0,0.2)]"
+                  isLoading || !abiInput.trim() || !contractAddress.trim()
+                    ? "bg-gradient-to-b from-gray-400 to-gray-500 text-white opacity-70 cursor-not-allowed shadow-[0_0_0_0_rgba(0,0,0,0.2)] disabled:opacity-50 disabled:cursor-not-allowed"
                     : "bg-gradient-to-b from-gray-600 to-gray-800 text-white shadow-[0_6px_0_0_rgba(0,0,0,0.2)] hover:shadow-[0_8px_0_0_rgba(0,0,0,0.2)] hover:-translate-y-[2px] active:shadow-[0_1px_0_0_rgba(0,0,0,0.2)] active:translate-y-[5px]"
                 )}
               >
