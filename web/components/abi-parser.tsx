@@ -7,10 +7,11 @@ import { cn } from "@/lib/utils";
 
 interface ABIFunction {
   name: string;
-  type: string;
+  type?: string;
+  mutability?: string;
+  onlyOwner?: boolean;
   inputs: any[];
   outputs: any[];
-  stateMutability?: string;
 }
 
 export default function ABIParser() {
@@ -26,11 +27,18 @@ export default function ABIParser() {
     try {
       if (abiInput.trim()) {
         const parsed = JSON.parse(abiInput);
-        const functions = Array.isArray(parsed)
-          ? parsed.filter((item) => item.type === "function")
-          : [];
-        setParsedAbi(functions);
-        setSelectedFunctions(["all", "transfer"]); // Reset selection when ABI changes
+
+        // Handle DAO ABI format with endpoints
+        if (parsed.endpoints) {
+          setParsedAbi(parsed.endpoints);
+          setSelectedFunctions(["all"]); // Reset selection when ABI changes
+        }
+        // Handle traditional Ethereum ABI format
+        else if (Array.isArray(parsed)) {
+          const functions = parsed.filter((item) => item.type === "function");
+          setParsedAbi(functions);
+          setSelectedFunctions(["all"]); // Reset selection when ABI changes
+        }
       }
     } catch (error) {
       console.error("Invalid ABI format", error);
@@ -76,14 +84,34 @@ export default function ABIParser() {
     setTimeout(() => {
       try {
         const parsed = JSON.parse(abiInput);
-        let filtered = parsed;
+        let filtered;
 
-        // If not "all" is selected, filter the ABI
-        if (!selectedFunctions.includes("all")) {
-          filtered = parsed.filter(
-            (item: any) =>
-              item.type !== "function" || selectedFunctions.includes(item.name)
-          );
+        // Handle DAO ABI format
+        if (parsed.endpoints) {
+          // Create a copy of the original object
+          const result = { ...parsed };
+
+          // If not "all" is selected, filter the endpoints
+          if (!selectedFunctions.includes("all")) {
+            result.endpoints = parsed.endpoints.filter((item: any) =>
+              selectedFunctions.includes(item.name)
+            );
+          }
+
+          filtered = result;
+        }
+        // Handle traditional Ethereum ABI format
+        else if (Array.isArray(parsed)) {
+          // If not "all" is selected, filter the ABI
+          if (!selectedFunctions.includes("all")) {
+            filtered = parsed.filter(
+              (item: any) =>
+                item.type !== "function" ||
+                selectedFunctions.includes(item.name)
+            );
+          } else {
+            filtered = parsed;
+          }
         }
 
         setOutputAbi(JSON.stringify(filtered, null, 2));
@@ -92,7 +120,7 @@ export default function ABIParser() {
         console.error("Error creating warp", error);
         setIsLoading(false);
       }
-    }, 4000); // 4 second timeout as requested
+    }, 1000); // Reduced timeout for better UX
   };
 
   // Copy to clipboard
@@ -100,6 +128,26 @@ export default function ABIParser() {
     navigator.clipboard.writeText(outputAbi);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
+  };
+
+  // Function to get the button color based on mutability
+  const getFunctionButtonStyle = (func: ABIFunction) => {
+    if (selectedFunctions.includes(func.name)) {
+      return "bg-gradient-to-b from-gray-600 to-gray-700 text-white shadow-[0_4px_0_0_rgba(0,0,0,0.2)] hover:shadow-[0_5px_0_0_rgba(0,0,0,0.2)] hover:-translate-y-[1px] active:shadow-[0_1px_0_0_rgba(0,0,0,0.2)] active:translate-y-[3px]";
+    }
+
+    // Read-only functions (light green)
+    if (func.mutability === "readonly") {
+      return "bg-gradient-to-b from-green-100 to-green-200 dark:from-green-800 dark:to-green-900 text-green-800 dark:text-green-100 shadow-[0_4px_0_0_rgba(0,0,0,0.1)] hover:shadow-[0_5px_0_0_rgba(0,0,0,0.1)] hover:-translate-y-[1px] active:shadow-[0_1px_0_0_rgba(0,0,0,0.1)] active:translate-y-[3px]";
+    }
+
+    // Write functions (light red)
+    if (func.mutability === "mutable") {
+      return "bg-gradient-to-b from-red-100 to-red-200 dark:from-red-800 dark:to-red-900 text-red-800 dark:text-red-100 shadow-[0_4px_0_0_rgba(0,0,0,0.1)] hover:shadow-[0_5px_0_0_rgba(0,0,0,0.1)] hover:-translate-y-[1px] active:shadow-[0_1px_0_0_rgba(0,0,0,0.1)] active:translate-y-[3px]";
+    }
+
+    // Default style for other cases
+    return "bg-gradient-to-b from-gray-100 to-gray-200 dark:from-gray-700 dark:to-gray-800 text-gray-800 dark:text-white shadow-[0_4px_0_0_rgba(0,0,0,0.1)] hover:shadow-[0_5px_0_0_rgba(0,0,0,0.1)] hover:-translate-y-[1px] active:shadow-[0_1px_0_0_rgba(0,0,0,0.1)] active:translate-y-[3px]";
   };
 
   return (
@@ -140,7 +188,7 @@ export default function ABIParser() {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
           {/* Left Panel */}
           <div className="space-y-6">
-            <div className="rounded-xl border-2 border-gray-200 dark:border-gray-700 overflow-hidden shadow-md bg-gray-50 dark:bg-gray-900">
+            <div className="rounded-xl border-2 border-gray-200 dark:border-gray-700 overflow-auto shadow-md bg-gray-50 dark:bg-gray-900 max-h-[400px]">
               <Textarea
                 placeholder="Paste your ABI"
                 className="min-h-[400px] border-0 resize-none p-4 focus-visible:ring-0 bg-transparent"
@@ -158,12 +206,15 @@ export default function ABIParser() {
                     "relative px-4 py-2 font-medium rounded-full overflow-hidden transition-all duration-150",
                     "border border-gray-300 dark:border-gray-600",
                     "after:content-[''] after:absolute after:inset-0 after:bg-gradient-to-b after:from-white/20 after:to-transparent after:opacity-50 dark:after:from-white/10",
-                    selectedFunctions.includes(func.name)
-                      ? "bg-gradient-to-b from-gray-600 to-gray-700 text-white shadow-[0_4px_0_0_rgba(0,0,0,0.2)] hover:shadow-[0_5px_0_0_rgba(0,0,0,0.2)] hover:-translate-y-[1px] active:shadow-[0_1px_0_0_rgba(0,0,0,0.2)] active:translate-y-[3px]"
-                      : "bg-gradient-to-b from-gray-100 to-gray-200 dark:from-gray-700 dark:to-gray-800 text-gray-800 dark:text-white shadow-[0_4px_0_0_rgba(0,0,0,0.1)] hover:shadow-[0_5px_0_0_rgba(0,0,0,0.1)] hover:-translate-y-[1px] active:shadow-[0_1px_0_0_rgba(0,0,0,0.1)] active:translate-y-[3px]"
+                    getFunctionButtonStyle(func)
                   )}
                 >
                   {func.name}
+                  {func.onlyOwner && (
+                    <span className="ml-1 text-xs bg-yellow-200 dark:bg-yellow-800 text-yellow-800 dark:text-yellow-200 px-1 py-0.5 rounded-full">
+                      owner
+                    </span>
+                  )}
                 </button>
               ))}
               <button
@@ -265,6 +316,40 @@ export default function ABIParser() {
                   "Create Warp"
                 )}
               </button>
+            </div>
+          </div>
+        </div>
+
+        {/* Help Section */}
+        <div className="mt-8 p-4 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900">
+          <h2 className="text-lg font-medium mb-2">How to Use</h2>
+          <div className="text-sm text-gray-600 dark:text-gray-300 space-y-2">
+            <p>
+              1. Paste your ABI JSON in the left panel (supports both Ethereum
+              and DAO ABI formats)
+            </p>
+            <p>
+              2. Select the functions you want to include (or keep "All"
+              selected)
+            </p>
+            <p>3. Click "Create Warp" to generate the filtered ABI</p>
+            <p>4. Copy the result using the clipboard icon</p>
+            <div className="flex items-center gap-2 mt-2">
+              <span className="inline-block w-3 h-3 bg-green-300 dark:bg-green-700 rounded-full"></span>
+              <span>Green functions are read-only (view)</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="inline-block w-3 h-3 bg-red-300 dark:bg-red-700 rounded-full"></span>
+              <span>Red functions are state-changing (write)</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="px-1 text-xs bg-yellow-200 dark:bg-yellow-800 text-yellow-800 dark:text-yellow-200 rounded-full">
+                owner
+              </span>
+              <span>
+                Badge indicates functions that can only be called by the
+                contract owner
+              </span>
             </div>
           </div>
         </div>
