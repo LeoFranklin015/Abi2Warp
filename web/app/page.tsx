@@ -1,4 +1,4 @@
-import DemoPage from "@/demo-page";
+import DemoPage from "@/components/demo-page";
 
 export default function Home() {
   return <DemoPage />;
