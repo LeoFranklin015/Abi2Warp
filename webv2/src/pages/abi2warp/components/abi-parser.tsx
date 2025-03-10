@@ -6,8 +6,9 @@ import { Textarea } from './ui/textarea';
 import { cn } from '../lib/utils';
 import { convertAbiToWarp } from '../lib/ABItoWarp';
 import { publishWarp } from '../lib/PublishWarp';
-import { useGetAccountInfo } from 'hooks';
-import { Label } from 'components';
+import { useGetAccountInfo, useGetSignedTransactions } from 'hooks';
+import { PublishABIButton } from './PublishABIButton';
+import { PublishWarpButton } from './PublishWarpButton';
 
 interface ABIFunction {
   name: string;
@@ -34,6 +35,9 @@ export default function ABIParser() {
   const [copied, setCopied] = useState(false);
   const [contractAddress, setContractAddress] = useState('');
   const { address } = useGetAccountInfo();
+  const [abiTxHash, setAbiTxHash] = useState('');
+  const [warpTxHash, setWarpTxHash] = useState('');
+
   // Parse ABI when input changes
   useEffect(() => {
     try {
@@ -52,6 +56,14 @@ export default function ABIParser() {
       console.error('Invalid ABI format', error);
     }
   }, [abiInput]);
+
+  useEffect(() => {
+    console.log('ABI Transaction Hash:', abiTxHash);
+  }, [abiTxHash]);
+
+  useEffect(() => {
+    console.log('Warp Transaction Hash:', warpTxHash);
+  }, [warpTxHash]);
 
   // Handle function selection
   const toggleFunction = (funcName: string) => {
@@ -107,10 +119,16 @@ export default function ABIParser() {
           }
 
           // Convert the filtered ABI to Warp format
-          const warp = await convertAbiToWarp(result, contractAddress, parsed, {
-            selectedFunctions: selectedFunctions,
-            openAIApiKey: import.meta.env.VITE_OPENAI_API_KEY
-          });
+          const warp = await convertAbiToWarp(
+            result,
+            contractAddress,
+            parsed,
+            abiTxHash,
+            {
+              selectedFunctions: selectedFunctions,
+              openAIApiKey: import.meta.env.VITE_OPENAI_API_KEY
+            }
+          );
           filtered = warp;
         } else {
           console.error('Invalid ABI format: Missing endpoints array');
@@ -298,14 +316,13 @@ export default function ABIParser() {
                 'Create Warp'
               )}
             </button>
-            <button
-              onClick={async () => {
-                await publishWarp(outputAbi, address);
-              }}
+            <PublishWarpButton
+              warp={outputAbi}
+              setTxHash={setWarpTxHash}
               className='relative px-6 py-2 font-medium text-white bg-green-500 border border-green-400 rounded-xl overflow-hidden shadow-[0_4px_0_0_rgba(0,0,0,0.1)] active:shadow-[0_1px_0_0_rgba(0,0,0,0.1)] active:translate-y-[3px] transition-all duration-150 hover:shadow-[0_6px_0_0_rgba(0,0,0,0.1)] hover:-translate-y-[1px] after:content-[""] after:absolute after:inset-0 after:bg-gradient-to-b after:from-white/20 after:to-transparent after:opacity-50'
-            >
-              Publish Warp
-            </button>
+            />
+
+            <PublishABIButton abi={abiInput} setTxHash={setAbiTxHash} />
           </div>
         </div>
       </div>

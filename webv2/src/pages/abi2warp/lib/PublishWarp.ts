@@ -1,6 +1,7 @@
 import { WarpBuilder, WarpConfig } from '@vleap/warps';
 import { sendTransactions } from 'helpers';
 import { useGetAccountInfo } from 'hooks';
+import { publishABI } from './PublishABI';
 
 export const publishWarp = async (warp: any, address: any) => {
   const config: WarpConfig = {

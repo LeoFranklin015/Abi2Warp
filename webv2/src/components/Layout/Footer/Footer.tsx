@@ -15,8 +15,8 @@ export const Footer = () => {
           className='flex items-center text-sm hover:underline'
           href='https://multiversx.com/'
         >
-          Made with <HeartIcon className='mx-1 fill-gray-400' /> by the
-          MultiversX team
+          Made with <HeartIcon className='mx-1 fill-gray-400' /> by the Leo
+          Franklin
         </a>
       </div>
     </footer>

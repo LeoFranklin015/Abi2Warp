@@ -1,6 +1,7 @@
 import { Warp, WarpAction } from '../types/Warp';
 
 import OpenAI from 'openai';
+import { publishABI } from './PublishABI';
 
 interface ABIEndpoint {
   name: string;
@@ -153,6 +154,7 @@ export const convertAbiToWarp = async (
   abi: ABIDefinition,
   contractAddress: string,
   completeABI: ABIDefinition,
+  abiTxHash: string,
   options?: {
     selectedFunctions?: string[];
     openAIApiKey?: string;
@@ -172,6 +174,7 @@ export const convertAbiToWarp = async (
 
     return {
       type: isReadonly ? 'query' : 'contract',
+      ...(isReadonly ? { abi: `hash:${abiTxHash}` } : {}),
       label: `${isReadonly ? 'Query' : 'Call'} ${endpoint.name}`,
       address: contractAddress,
       func: endpoint.name,
