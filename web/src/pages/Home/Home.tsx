@@ -1,5 +1,6 @@
 import { AuthRedirectWrapper, PageWrapper } from 'wrappers';
 import { Transaction } from './Transaction';
+import { RouteNamesEnum } from 'localConstants';
 
 export const Home = () => {
   return (
@@ -41,7 +42,7 @@ export const Home = () => {
                 </p>
               </div>
               <a
-                href='/unlock'
+                href={RouteNamesEnum.unlock}
                 className='self-start inline-block rounded-lg px-3 py-2 text-center hover:no-underline my-0 bg-transparent hover:bg-blue-600 text-blue-600 hover:text-white mr-0 border-solid border-blue-600 border-[1px]'
               >
                 Create Warp
