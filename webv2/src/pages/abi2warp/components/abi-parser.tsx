@@ -33,6 +33,7 @@ export default function ABIParser() {
   const [outputAbi, setOutputAbi] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [linkCopied, setLinkCopied] = useState(false);
   const [contractAddress, setContractAddress] = useState('');
   const { address } = useGetAccountInfo();
   const [abiTxHash, setAbiTxHash] = useState('');
@@ -150,6 +151,14 @@ export default function ABIParser() {
     navigator.clipboard.writeText(outputAbi);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
+  };
+
+  // Add this function to copy the Warp link to clipboard
+  const copyWarpLink = () => {
+    const link = `https://devnet.usewarp.to/hash:${warpTxHash}`;
+    navigator.clipboard.writeText(link);
+    setLinkCopied(true);
+    setTimeout(() => setLinkCopied(false), 2000);
   };
 
   // Function to get the button color based on mutability
@@ -438,7 +447,7 @@ export default function ABIParser() {
               )}
 
               {warpTxHash && (
-                <div className='flex justify-end'>
+                <div className='flex justify-end space-x-2'>
                   <a
                     href={`https://devnet.usewarp.to/hash%3A${warpTxHash}`}
                     target='_blank'
@@ -452,6 +461,22 @@ export default function ABIParser() {
                   >
                     Open Warp 🚀
                   </a>
+
+                  <button
+                    onClick={copyWarpLink}
+                    className='relative px-4 py-3 text-lg font-bold rounded-xl overflow-hidden transition-all duration-200 
+                      border-2 border-gray-200 
+                      after:content-[""] after:absolute after:inset-0 after:bg-gradient-to-b after:from-white/30 after:to-transparent after:opacity-50 
+                      bg-blue-500 text-white shadow-[0_6px_0_0_rgba(0,0,0,0.2)] hover:shadow-[0_8px_0_0_rgba(0,0,0,0.2)] hover:-translate-y-[2px] 
+                      active:shadow-[0_1px_0_0_rgba(0,0,0,0.2)] active:translate-y-[5px]'
+                    aria-label='Copy link to clipboard'
+                  >
+                    {linkCopied ? (
+                      <Check className='h-5 w-5' />
+                    ) : (
+                      <ClipboardCopy className='h-5 w-5' />
+                    )}
+                  </button>
                 </div>
               )}
             </div>
