@@ -66,7 +66,7 @@ export default function ABIParser() {
           console.log('Sending ABI data to API server...');
           await axios.post('https://abi2warp.onrender.com/api/abis', {
             abi: abiInput,
-            contractAddress: address,
+            contractAddress: contractAddress,
             txHash: abiTxHash,
             sender: address
           });
