@@ -64,7 +64,7 @@ export default function ABIParser() {
       try {
         if (abiTxHash) {
           console.log('Sending ABI data to API server...');
-          await axios.post('https://abi2warp.render.com/api/abis', {
+          await axios.post('https://abi2warp.onrender.com/api/abis', {
             abi: abiInput,
             contractAddress: address,
             txHash: abiTxHash,
@@ -87,7 +87,7 @@ export default function ABIParser() {
       try {
         if (warpTxHash) {
           console.log('Sending Warp data to API server...');
-          await axios.post('https://abi2warp.render.com/api/warps', {
+          await axios.post('https://abi2warp.onrender.com/api/warps', {
             warp: outputAbi,
             address: address,
             txHash: warpTxHash
@@ -108,7 +108,7 @@ export default function ABIParser() {
     const fetchAbi = async () => {
       try {
         const response = await axios.get(
-          `https://abi2warp.render.com/api/abis/${contractAddress}`
+          `https://abi2warp.onrender.com/api/abis/${contractAddress}`
         );
         console.log(response.data);
         if (response.data.txHash) {
