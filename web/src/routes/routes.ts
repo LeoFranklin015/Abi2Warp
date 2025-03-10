@@ -1,6 +1,7 @@
 import { RouteNamesEnum } from 'localConstants';
 import { Home } from 'pages';
 import { ABI2Warp } from 'pages/abi2warp';
+import { Unlock } from 'pages/Unlock';
 import YourWarps from 'pages/yourWarps/YourWarps';
 import { RouteType } from 'types';
 
@@ -13,6 +14,11 @@ export const routes: RouteWithTitleType[] = [
     path: RouteNamesEnum.home,
     title: 'Home',
     component: Home
+  },
+  {
+    path: RouteNamesEnum.unlock,
+    title: 'Unlock',
+    component: Unlock
   },
   {
     path: RouteNamesEnum.abi2warp,
