@@ -28,6 +28,7 @@ export default defineConfig({
       globals: { Buffer: true, global: true, process: true }
     })
   ],
+  base: './',
   build: {
     outDir: 'build'
   },

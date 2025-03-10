@@ -76,11 +76,11 @@ export const Unlock = () => {
           </div>
 
           <div className='flex flex-col md:flex-row'>
-            <WalletConnectLoginButton
+            {/* <WalletConnectLoginButton
               loginButtonText='xPortal App'
               {...commonProps}
             />
-            <LedgerLoginButton loginButtonText='Ledger' {...commonProps} />
+            <LedgerLoginButton loginButtonText='Ledger' {...commonProps} /> */}
             <ExtensionLoginButton
               loginButtonText='DeFi Wallet'
               {...commonProps}
@@ -91,7 +91,7 @@ export const Unlock = () => {
             />
             <XaliasLoginWrapper {...commonProps} />
             <WebWalletLoginWrapper {...commonProps} />
-            {isMobile && (
+            {/* {isMobile && (
               <IframeButton
                 loginButtonText='Passkey Proxy'
                 {...commonProps}
@@ -103,7 +103,7 @@ export const Unlock = () => {
               loginButtonText='Metamask Proxy'
               {...commonProps}
               onClick={() => onInitiateLogin(IframeLoginTypes.metamask)}
-            />
+            /> */}
           </div>
         </div>
       </div>
