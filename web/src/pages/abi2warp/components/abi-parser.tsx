@@ -222,10 +222,6 @@ export default function ABIParser() {
 
   // Function to get the button color based on mutability
   const getFunctionButtonStyle = (func: ABIFunction) => {
-    if (selectedFunctions.includes(func.name)) {
-      return 'bg-blue-500 text-white shadow-[0_4px_0_0_rgba(0,0,0,0.2)] hover:shadow-[0_5px_0_0_rgba(0,0,0,0.2)] hover:-translate-y-[1px] active:shadow-[0_1px_0_0_rgba(0,0,0,0.2)] active:translate-y-[3px]';
-    }
-
     // Read-only functions (light green)
     if (func.mutability === 'readonly') {
       return 'bg-blue-50 text-blue-700 shadow-[0_4px_0_0_rgba(0,0,0,0.1)] hover:shadow-[0_5px_0_0_rgba(0,0,0,0.1)] hover:-translate-y-[1px] active:shadow-[0_1px_0_0_rgba(0,0,0,0.1)] active:translate-y-[3px]';
@@ -257,37 +253,52 @@ export default function ABIParser() {
 
           <div className='flex flex-wrap gap-3'>
             {parsedAbi.map((func, index) => (
+              <div key={index} className='relative overflow-visible'>
+                <button
+                  onClick={() => toggleFunction(func.name)}
+                  className={cn(
+                    'relative px-4 py-2 font-medium rounded-full overflow-hidden transition-all duration-150',
+                    'border border-gray-200',
+                    "after:content-[''] after:absolute after:inset-0 after:bg-gradient-to-b after:from-white/20 after:to-transparent after:opacity-50",
+                    getFunctionButtonStyle(func)
+                  )}
+                >
+                  {func.name}
+                  {func.onlyOwner && (
+                    <span className='ml-1 text-xs bg-amber-100 text-amber-800 px-1 py-0.5 rounded-full'>
+                      owner
+                    </span>
+                  )}
+                </button>
+
+                {selectedFunctions.includes(func.name) && (
+                  <span className='absolute z-10 -top-1 -right-1 bg-blue-500 rounded-full p-1 shadow-md flex items-center justify-center h-5 w-5'>
+                    <Check className='h-4 w-4 text-white' />
+                  </span>
+                )}
+              </div>
+            ))}
+
+            {/* "All" Button */}
+            <div className='relative overflow-visible'>
               <button
-                key={index}
-                onClick={() => toggleFunction(func.name)}
+                onClick={() => toggleFunction('all')}
                 className={cn(
                   'relative px-4 py-2 font-medium rounded-full overflow-hidden transition-all duration-150',
                   'border border-gray-200',
                   "after:content-[''] after:absolute after:inset-0 after:bg-gradient-to-b after:from-white/20 after:to-transparent after:opacity-50",
-                  getFunctionButtonStyle(func)
+                  'bg-gray-100 text-gray-700 shadow-[0_4px_0_0_rgba(0,0,0,0.1)] hover:shadow-[0_5px_0_0_rgba(0,0,0,0.1)] hover:-translate-y-[1px] active:shadow-[0_1px_0_0_rgba(0,0,0,0.1)] active:translate-y-[3px]'
                 )}
               >
-                {func.name}
-                {func.onlyOwner && (
-                  <span className='ml-1 text-xs bg-amber-100 text-amber-800 px-1 py-0.5 rounded-full'>
-                    owner
-                  </span>
-                )}
+                All
               </button>
-            ))}
-            <button
-              onClick={() => toggleFunction('all')}
-              className={cn(
-                'relative px-4 py-2 font-medium rounded-full overflow-hidden transition-all duration-150',
-                'border border-gray-200',
-                "after:content-[''] after:absolute after:inset-0 after:bg-gradient-to-b after:from-white/20 after:to-transparent after:opacity-50",
-                selectedFunctions.includes('all')
-                  ? 'bg-blue-500 text-white shadow-[0_4px_0_0_rgba(0,0,0,0.2)] hover:shadow-[0_5px_0_0_rgba(0,0,0,0.2)] hover:-translate-y-[1px] active:shadow-[0_1px_0_0_rgba(0,0,0,0.2)] active:translate-y-[3px]'
-                  : 'bg-gray-100 text-gray-700 shadow-[0_4px_0_0_rgba(0,0,0,0.1)] hover:shadow-[0_5px_0_0_rgba(0,0,0,0.1)] hover:-translate-y-[1px] active:shadow-[0_1px_0_0_rgba(0,0,0,0.1)] active:translate-y-[3px]'
+
+              {selectedFunctions.includes('all') && (
+                <span className='absolute z-40 -top-1 -right-1 bg-blue-500 rounded-full p-1 shadow-md flex items-center justify-center h-5 w-5'>
+                  <Check className='h-4 w-4 text-white' />
+                </span>
               )}
-            >
-              All
-            </button>
+            </div>
           </div>
         </div>
 
@@ -547,10 +558,7 @@ export default function ABIParser() {
       <div className='mt-8 p-6 rounded-xl border border-gray-200 bg-gray-50'>
         <h2 className='text-lg font-medium mb-4 text-gray-800'>How to Use</h2>
         <div className='text-sm text-gray-600 space-y-3'>
-          <p>
-            1. Paste your ABI JSON in the left panel (supports both Ethereum and
-            DAO ABI formats)
-          </p>
+          <p>1. Paste your ABI JSON in the left panel</p>
           <p>2. Enter your contract address in the specified field</p>
           <p>3. Follow the sequential workflow:</p>
           <ul className='list-disc pl-8 space-y-2'>
