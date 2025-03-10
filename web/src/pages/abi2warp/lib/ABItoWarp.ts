@@ -214,7 +214,7 @@ export const convertAbiToWarp = async (
   }
 
   return {
-    protocol: 'warp:0.2.0',
+    protocol: 'warp:0.5.0',
     name: metadata.name,
     title: metadata.title,
     description: metadata.description,

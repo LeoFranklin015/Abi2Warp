@@ -13,7 +13,7 @@ export const Footer = () => {
         <a
           target='_blank'
           className='flex items-center text-sm hover:underline'
-          href='https://multiversx.com/'
+          href='https://leofranklin.vercel.app/'
         >
           Made with <HeartIcon className='mx-1 fill-gray-400' /> by the Leo
           Franklin

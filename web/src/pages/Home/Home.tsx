@@ -27,7 +27,7 @@ export const Home = () => {
                   >
                     Warp
                   </a>{' '}
-                  format <br className='hidden xl:block' />
+                  <br className='hidden xl:block' />
                   Upload - Create - Publish your ABI as Warp on
                   <br />
                   <a

@@ -9,6 +9,7 @@ import { convertAbiToWarp } from '../lib/ABItoWarp';
 import { useGetAccountInfo, useGetSignedTransactions } from 'hooks';
 import { PublishABIButton } from './PublishABIButton';
 import { PublishWarpButton } from './PublishWarpButton';
+import axios from 'axios';
 
 interface ABIFunction {
   name: string;
@@ -59,12 +60,70 @@ export default function ABIParser() {
   }, [abiInput]);
 
   useEffect(() => {
-    console.log('ABI Transaction Hash:', abiTxHash);
+    const sendAbiData = async () => {
+      try {
+        if (abiTxHash) {
+          console.log('Sending ABI data to API server...');
+          await axios.post('https://abi2warp.render.com/api/abis', {
+            abi: abiInput,
+            contractAddress: address,
+            txHash: abiTxHash,
+            sender: address
+          });
+          console.log('ABI data sent successfully to API server');
+        }
+      } catch (error) {
+        console.error('Error sending ABI data to API server:', error);
+      }
+    };
+
+    if (abiTxHash) {
+      sendAbiData();
+    }
   }, [abiTxHash]);
 
   useEffect(() => {
-    console.log('Warp Transaction Hash:', warpTxHash);
-  }, [warpTxHash]);
+    const sendWarpData = async () => {
+      try {
+        if (warpTxHash) {
+          console.log('Sending Warp data to API server...');
+          await axios.post('https://abi2warp.render.com/api/warps', {
+            warp: outputAbi,
+            address: address,
+            txHash: warpTxHash
+          });
+          console.log('Warp data sent successfully to API server');
+        }
+      } catch (error) {
+        console.error('Error sending Warp data to API server:', error);
+      }
+    };
+
+    if (warpTxHash) {
+      sendWarpData();
+    }
+  }, [warpTxHash, outputAbi, address]);
+
+  useEffect(() => {
+    const fetchAbi = async () => {
+      try {
+        const response = await axios.get(
+          `https://abi2warp.render.com/api/abis/${contractAddress}`
+        );
+        console.log(response.data);
+        if (response.data.txHash) {
+          setAbiInput(response.data.abi);
+          setAbiTxHash(response.data.txHash);
+        }
+      } catch (error) {
+        console.error('Error fetching ABI:', error);
+      }
+    };
+
+    if (contractAddress) {
+      fetchAbi();
+    }
+  }, [contractAddress]);
 
   // Handle function selection
   const toggleFunction = (funcName: string) => {
