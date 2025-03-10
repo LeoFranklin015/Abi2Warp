@@ -5,7 +5,7 @@ import { Check, ClipboardCopy } from 'lucide-react';
 import { Textarea } from './ui/textarea';
 import { cn } from '../lib/utils';
 import { convertAbiToWarp } from '../lib/ABItoWarp';
-import { publishWarp } from '../lib/PublishWarp';
+
 import { useGetAccountInfo, useGetSignedTransactions } from 'hooks';
 import { PublishABIButton } from './PublishABIButton';
 import { PublishWarpButton } from './PublishWarpButton';
@@ -266,6 +266,87 @@ export default function ABIParser() {
             )}
           </div>
 
+          {/* Workflow Status Indicator */}
+          <div className='mt-4 mb-2'>
+            <div className='flex items-center justify-between max-w-md mx-auto'>
+              {/* Step 1: Publish ABI */}
+              <div className='flex flex-col items-center'>
+                <div
+                  className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold ${
+                    abiTxHash
+                      ? 'bg-green-500 text-white'
+                      : 'bg-blue-500 text-white'
+                  }`}
+                >
+                  {abiTxHash ? '✓' : '1'}
+                </div>
+                <p className='text-xs mt-1'>Publish ABI</p>
+                {abiTxHash && (
+                  <span
+                    className='text-xs text-gray-500 truncate max-w-[80px]'
+                    title={abiTxHash}
+                  >
+                    {abiTxHash.substring(0, 6)}...
+                  </span>
+                )}
+              </div>
+
+              {/* Connector Line */}
+              <div
+                className={`h-1 w-16 ${
+                  abiTxHash ? 'bg-green-500' : 'bg-gray-300'
+                }`}
+              ></div>
+
+              {/* Step 2: Create Warp */}
+              <div className='flex flex-col items-center'>
+                <div
+                  className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold ${
+                    outputAbi
+                      ? 'bg-green-500 text-white'
+                      : abiTxHash
+                      ? 'bg-blue-500 text-white'
+                      : 'bg-gray-300 text-gray-600'
+                  }`}
+                >
+                  {outputAbi ? '✓' : '2'}
+                </div>
+                <p className='text-xs mt-1'>Create Warp</p>
+              </div>
+
+              {/* Connector Line */}
+              <div
+                className={`h-1 w-16 ${
+                  outputAbi ? 'bg-green-500' : 'bg-gray-300'
+                }`}
+              ></div>
+
+              {/* Step 3: Publish Warp */}
+              <div className='flex flex-col items-center'>
+                <div
+                  className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold ${
+                    warpTxHash
+                      ? 'bg-green-500 text-white'
+                      : outputAbi
+                      ? 'bg-blue-500 text-white'
+                      : 'bg-gray-300 text-gray-600'
+                  }`}
+                >
+                  {warpTxHash ? '✓' : '3'}
+                </div>
+                <p className='text-xs mt-1'>Publish Warp</p>
+                {warpTxHash && (
+                  <span
+                    className='text-xs text-gray-500 truncate max-w-[80px]'
+                    title={warpTxHash}
+                  >
+                    {warpTxHash.substring(0, 6)}...
+                  </span>
+                )}
+              </div>
+            </div>
+          </div>
+
           <div className='flex justify-between'>
             <input
               type='text'
@@ -274,55 +355,106 @@ export default function ABIParser() {
               onChange={(e) => setContractAddress(e.target.value)}
               className='mt-2 p-2 border border-gray-300 rounded-md min-w-[300px]'
             />
-            <button
-              onClick={createWarp}
-              disabled={
-                isLoading || !abiInput.trim() || !contractAddress.trim()
-              }
-              className={cn(
-                'relative px-8 py-3 text-lg font-bold rounded-xl overflow-hidden transition-all duration-200',
-                'border-2 border-gray-200',
-                "after:content-[''] after:absolute after:inset-0 after:bg-gradient-to-b after:from-white/30 after:to-transparent after:opacity-50",
-                isLoading || !abiInput.trim() || !contractAddress.trim()
-                  ? 'bg-gray-300 text-gray-500 opacity-70 cursor-not-allowed shadow-[0_0_0_0_rgba(0,0,0,0.2)] disabled:opacity-50 disabled:cursor-not-allowed'
-                  : 'bg-blue-500 text-white shadow-[0_6px_0_0_rgba(0,0,0,0.2)] hover:shadow-[0_8px_0_0_rgba(0,0,0,0.2)] hover:-translate-y-[2px] active:shadow-[0_1px_0_0_rgba(0,0,0,0.2)] active:translate-y-[5px]'
-              )}
-            >
-              {isLoading ? (
-                <span className='flex items-center justify-center'>
-                  <svg
-                    className='animate-spin -ml-1 mr-3 h-5 w-5 text-white'
-                    xmlns='http://www.w3.org/2000/svg'
-                    fill='none'
-                    viewBox='0 0 24 24'
-                  >
-                    <circle
-                      className='opacity-25'
-                      cx='12'
-                      cy='12'
-                      r='10'
-                      stroke='currentColor'
-                      strokeWidth='4'
-                    ></circle>
-                    <path
-                      className='opacity-75'
-                      fill='currentColor'
-                      d='M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z'
-                    ></path>
-                  </svg>
-                  Processing...
-                </span>
-              ) : (
-                'Create Warp'
-              )}
-            </button>
-            <PublishWarpButton
-              warp={outputAbi}
-              setTxHash={setWarpTxHash}
-              className='relative px-6 py-2 font-medium text-white bg-green-500 border border-green-400 rounded-xl overflow-hidden shadow-[0_4px_0_0_rgba(0,0,0,0.1)] active:shadow-[0_1px_0_0_rgba(0,0,0,0.1)] active:translate-y-[3px] transition-all duration-150 hover:shadow-[0_6px_0_0_rgba(0,0,0,0.1)] hover:-translate-y-[1px] after:content-[""] after:absolute after:inset-0 after:bg-gradient-to-b after:from-white/20 after:to-transparent after:opacity-50'
-            />
 
-            <PublishABIButton abi={abiInput} setTxHash={setAbiTxHash} />
+            <div className='flex flex-col space-y-4'>
+              {/* Step 1: Publish ABI Button (Always shown first) */}
+              {!abiTxHash && (
+                <div className='flex justify-end'>
+                  <PublishABIButton
+                    abi={abiInput}
+                    setTxHash={setAbiTxHash}
+                    disabled={!abiInput.trim()}
+                    className='relative px-8 py-3 text-lg font-bold rounded-xl overflow-hidden transition-all duration-200 
+                    border-2 border-gray-200 
+                    after:content-[""] after:absolute after:inset-0 after:bg-gradient-to-b after:from-white/30 after:to-transparent after:opacity-50 
+                    bg-blue-500 text-white shadow-[0_6px_0_0_rgba(0,0,0,0.2)] hover:shadow-[0_8px_0_0_rgba(0,0,0,0.2)] hover:-translate-y-[2px] 
+                    active:shadow-[0_1px_0_0_rgba(0,0,0,0.2)] active:translate-y-[5px] disabled:bg-gray-300 disabled:text-gray-500 
+                    disabled:opacity-70 disabled:cursor-not-allowed disabled:shadow-[0_0_0_0_rgba(0,0,0,0.2)]'
+                  />
+                </div>
+              )}
+
+              {/* Step 2: Create Warp Button (Only shown after ABI is published) */}
+              {abiTxHash && !outputAbi && (
+                <div className='flex justify-end'>
+                  <button
+                    onClick={createWarp}
+                    disabled={isLoading || !contractAddress.trim()}
+                    className={cn(
+                      'relative px-8 py-3 text-lg font-bold rounded-xl overflow-hidden transition-all duration-200',
+                      'border-2 border-gray-200',
+                      "after:content-[''] after:absolute after:inset-0 after:bg-gradient-to-b after:from-white/30 after:to-transparent after:opacity-50",
+                      isLoading || !contractAddress.trim()
+                        ? 'bg-gray-300 text-gray-500 opacity-70 cursor-not-allowed shadow-[0_0_0_0_rgba(0,0,0,0.2)] disabled:opacity-50 disabled:cursor-not-allowed'
+                        : 'bg-blue-500 text-white shadow-[0_6px_0_0_rgba(0,0,0,0.2)] hover:shadow-[0_8px_0_0_rgba(0,0,0,0.2)] hover:-translate-y-[2px] active:shadow-[0_1px_0_0_rgba(0,0,0,0.2)] active:translate-y-[5px]'
+                    )}
+                  >
+                    {isLoading ? (
+                      <span className='flex items-center justify-center'>
+                        <svg
+                          className='animate-spin -ml-1 mr-3 h-5 w-5 text-white'
+                          xmlns='http://www.w3.org/2000/svg'
+                          fill='none'
+                          viewBox='0 0 24 24'
+                        >
+                          <circle
+                            className='opacity-25'
+                            cx='12'
+                            cy='12'
+                            r='10'
+                            stroke='currentColor'
+                            strokeWidth='4'
+                          ></circle>
+                          <path
+                            className='opacity-75'
+                            fill='currentColor'
+                            d='M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z'
+                          ></path>
+                        </svg>
+                        Processing...
+                      </span>
+                    ) : (
+                      'Create Warp'
+                    )}
+                  </button>
+                </div>
+              )}
+
+              {/* Step 3: Publish Warp Button (Only shown after output ABI is generated) */}
+              {outputAbi && !warpTxHash && (
+                <div className='flex justify-end'>
+                  <PublishWarpButton
+                    warp={outputAbi}
+                    setTxHash={setWarpTxHash}
+                    disabled={!outputAbi.trim()}
+                    className='relative px-8 py-3 text-lg font-bold rounded-xl overflow-hidden transition-all duration-200 
+                      border-2 border-gray-200 
+                      after:content-[""] after:absolute after:inset-0 after:bg-gradient-to-b after:from-white/30 after:to-transparent after:opacity-50 
+                      bg-green-500 text-white shadow-[0_6px_0_0_rgba(0,0,0,0.2)] hover:shadow-[0_8px_0_0_rgba(0,0,0,0.2)] hover:-translate-y-[2px] 
+                      active:shadow-[0_1px_0_0_rgba(0,0,0,0.2)] active:translate-y-[5px] disabled:bg-gray-300 disabled:text-gray-500 
+                      disabled:opacity-70 disabled:cursor-not-allowed disabled:shadow-[0_0_0_0_rgba(0,0,0,0.2)]'
+                  />
+                </div>
+              )}
+
+              {warpTxHash && (
+                <div className='flex justify-end'>
+                  <a
+                    href={`https://devnet.usewarp.to/hash%3A${warpTxHash}`}
+                    target='_blank'
+                    rel='noopener noreferrer'
+                    className='relative px-8 py-3 text-lg font-bold rounded-xl overflow-hidden transition-all duration-200 
+                      border-2 border-gray-200 
+                      after:content-[""] after:absolute after:inset-0 after:bg-gradient-to-b after:from-white/30 after:to-transparent after:opacity-50 
+                      bg-green-500 text-white shadow-[0_6px_0_0_rgba(0,0,0,0.2)] hover:shadow-[0_8px_0_0_rgba(0,0,0,0.2)] hover:-translate-y-[2px] 
+                      active:shadow-[0_1px_0_0_rgba(0,0,0,0.2)] active:translate-y-[5px] disabled:bg-gray-300 disabled:text-gray-500 
+                      disabled:opacity-70 disabled:cursor-not-allowed disabled:shadow-[0_0_0_0_rgba(0,0,0,0.2)]'
+                  >
+                    Open Warp 🚀
+                  </a>
+                </div>
+              )}
+            </div>
           </div>
         </div>
       </div>
@@ -335,12 +467,31 @@ export default function ABIParser() {
             1. Paste your ABI JSON in the left panel (supports both Ethereum and
             DAO ABI formats)
           </p>
+          <p>2. Enter your contract address in the specified field</p>
+          <p>3. Follow the sequential workflow:</p>
+          <ul className='list-disc pl-8 space-y-2'>
+            <li>
+              <span className='font-semibold'>Step 1:</span> Click{' '}
+              <span className='font-medium text-blue-600'>"Publish ABI"</span>{' '}
+              to store your ABI on the blockchain
+            </li>
+            <li>
+              <span className='font-semibold'>Step 2:</span> Once the ABI is
+              published, click{' '}
+              <span className='font-medium text-blue-600'>"Create Warp"</span>{' '}
+              to generate the Warp definition
+            </li>
+            <li>
+              <span className='font-semibold'>Step 3:</span> After the Warp is
+              created, click{' '}
+              <span className='font-medium text-green-600'>"Publish Warp"</span>{' '}
+              to deploy it to the blockchain
+            </li>
+          </ul>
           <p>
-            2. Select the functions you want to include (or keep &quot;All&quot;
-            selected)
+            4. Optional: You can select specific functions to include in your
+            Warp by clicking on them before creating the Warp
           </p>
-          <p>3. Click &quot;Create Warp&quot; to generate the filtered ABI</p>
-          <p>4. Copy the result using the clipboard icon</p>
           <div className='flex items-center gap-2 mt-3 mb-1'>
             <span className='inline-block w-3 h-3 bg-blue-100 rounded-full'></span>
             <span>Blue background indicates read-only functions (view)</span>
