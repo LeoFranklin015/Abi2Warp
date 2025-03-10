@@ -58,8 +58,17 @@ export const Header = () => {
 
       <nav className='h-full w-full text-sm sm:relative sm:left-auto sm:top-auto sm:flex sm:w-auto sm:flex-row sm:justify-end sm:bg-transparent'>
         <div className='flex justify-end container mx-auto items-center gap-2'>
-          <div className='flex gap-1 items-center'>
+          <div className='flex gap-2 items-center'>
+            {isLoggedIn && (
+              <a
+                href={RouteNamesEnum.yourWarps}
+                className='mr-4 text-gray-600 hover:text-gray-800 hover:underline'
+              >
+                Your Warps
+              </a>
+            )}
             <div className='w-2 h-2 rounded-full bg-green-500' />
+
             <p className='text-gray-600'>{environment}</p>
           </div>
 

@@ -54,7 +54,7 @@ app.get("/api/abis/:contractAddress", async (_req: Request, res: Response) => {
 
 app.get("/api/warps/:address", async (_req: Request, res: Response) => {
   try {
-    const warp = await WarpModel.findOne({ address: _req.params.address });
+    const warp = await WarpModel.find({ address: _req.params.address });
     res.json(warp);
   } catch (error: unknown) {
     console.error("Error fetching warps:", error);
